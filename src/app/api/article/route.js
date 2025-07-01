@@ -11,8 +11,16 @@ export async function POST(req) {
 
   // Step 1: Fetch Trending Topics using Puppeteer
   const browser = await puppeteer.launch({
-    headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    headless: "true",
+    executablePath: process.env.CHROME_PATH || (await puppeteer.executablePath()),
+    args: [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-gpu",
+    "--no-zygote",
+    "--single-process",
+  ],
   });
   const page = await browser.newPage();
   await page.goto("https://trends24.in/india/", {

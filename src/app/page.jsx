@@ -2,9 +2,8 @@ import Link from "next/link";
 import { getAllArticles } from "@/app/lib/action";
 
 export default async function Home() {
-  const BASE_URL = "http://localhost:3000";
    // Trigger fetch/store trending articles API
-  await fetch(`${BASE_URL}/api/article`, {
+  await fetch(`${process.env.NEXTAUTH_URL}/api/article`, {
     method: "POST",
     cache: "no-store",
   });
