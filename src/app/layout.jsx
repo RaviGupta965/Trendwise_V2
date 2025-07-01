@@ -2,8 +2,7 @@
 import AuthProvider from '@/app/components/AuthProvider';
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { SessionProvider } from "next-auth/react";
-import AuthButton from './components/Login';
+import Navbar from './components/Navbar';
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -23,12 +22,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
+      <body className='bg-[#0a192f]'>
         <AuthProvider>
-          <nav className="p-4 flex justify-between items-center bg-black text-white">
-            <h1 className="text-2xl font-bold">🔥 TrendWise</h1>
-            <AuthButton />
-          </nav>
+          <Navbar/>
           {children}
         </AuthProvider>
       </body>

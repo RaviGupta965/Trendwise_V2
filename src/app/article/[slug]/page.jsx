@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Comments from "@/app/components/comments";
 
 export async function generateMetadata({ params }) {
-  const { slug } = params;
+  const { slug } = await params;
   await connectToDatabase();
   const article = await Article.findOne({ slug }).lean();
 
@@ -29,23 +29,24 @@ export default async function ArticlePage({ params }) {
   if (!article) return notFound();
 
   return (
-    <main className="max-w-3xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
-      <div className="prose prose-lg mb-6" dangerouslySetInnerHTML={{ __html: article.content }} />
-      
-      {article.media?.length > 0 && (
-        <div className="mt-8">
-          <h3 className="text-xl font-semibold mb-2">Media</h3>
-          <ul className="list-disc pl-5 space-y-2">
-            {article.media.map((url, i) => (
-              <li key={i}>
-                <a href={url} className="text-blue-600 underline" target="_blank">{url}</a>
-              </li>
-            ))}
-          </ul>
+    <div className="min-h-screen bg-gradient-to-b from-[#0a192f] to-[#0f2d5b] text-white">
+      <div className="max-w-4xl mx-auto py-16 px-6">
+        <h1 className="text-4xl font-bold leading-tight tracking-tight text-[#0ef] mb-8">
+          {article.title}
+        </h1>
+
+        <article
+          className="prose prose-invert prose-lg max-w-none"
+          dangerouslySetInnerHTML={{ __html: article.content }}
+        />
+
+        <div className="mt-16 border-t border-gray-700 pt-10">
+          <h2 className="text-2xl font-semibold text-[#0ef] mb-4">
+            💬 Comments
+          </h2>
+          <Comments slug={slug} />
         </div>
-      )}
-      <Comments slug={slug} />
-    </main>
+      </div>
+    </div>
   );
 }
