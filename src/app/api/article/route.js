@@ -24,7 +24,7 @@ export async function POST(req) {
     document.querySelectorAll(".trend-link").forEach((el) => {
       titles.push(el.textContent.trim());
     });
-    return titles.slice(0, 10); // limit to 10 topics
+    return titles.slice(0, 20); // limit to 10 topics
   });
   await browser.close();
 

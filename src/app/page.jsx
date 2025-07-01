@@ -2,11 +2,17 @@ import Link from "next/link";
 import { getAllArticles } from "@/app/lib/action";
 
 export default async function Home() {
-  await getAllArticles();
+  const BASE_URL = "http://localhost:3000";
+   // Trigger fetch/store trending articles API
+  await fetch(`${BASE_URL}/api/article`, {
+    method: "POST",
+    cache: "no-store",
+  });
+
   const articles = await getAllArticles();
 
   return (
-    <main className="px-4 py-20 mx-auto bg-[#0a192f]">
+    <main className="px-4 py-20 mx-auto min-h-screen bg-[#0a192f]">
       <h1 className="text-4xl font-bold mb-8 text-center text-[#0ef] tracking-tight">
         🔥 Trending Articles
       </h1>
@@ -15,7 +21,7 @@ export default async function Home() {
         {articles.map((article) => (
           <li
             key={article._id}
-            className="rounded-xl hover:translate-y-[-5px] transition border border-gray-800 bg-black/30 p-6 hover:shadow-lg hover:border-[#0ef] transition duration-300"
+            className="rounded-xl hover:translate-y-[-5px] border border-gray-800 bg-black/30 p-6 hover:shadow-lg hover:border-[#0ef] transition duration-300"
           >
             <h2 className="text-xl font-semibold text-white mb-2 line-clamp-2">
               <Link
