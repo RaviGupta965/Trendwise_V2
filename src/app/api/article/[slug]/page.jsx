@@ -1,11 +1,11 @@
-import connectDB from "@/lib/db";
-import Article from "@/models/article.model";
+import connectToDatabase from "@/app/lib/mongoDB";
+import Article from "@/app/models/article.schema";
 import Comments from "@/app/components/Comments";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata({ params }) {
   const { slug } = params;
-  await connectDB();
+  await connectToDatabase();
   const article = await Article.findOne({ slug }).lean();
 
   if (!article) return { title: "Not Found" };

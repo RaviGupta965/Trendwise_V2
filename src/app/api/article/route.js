@@ -61,7 +61,6 @@ Return JSON like:
 
     try {
       const result = await model.generateContent(prompt);
-      console.log(result);
       const text = result.response.text().trim();
       const jsonText = text.replace(/^```json|^```|```$/g, "");
       const articleData = JSON.parse(jsonText);
