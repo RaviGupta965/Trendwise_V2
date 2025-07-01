@@ -1,6 +1,6 @@
 import connectToDatabase from "@/app/lib/mongoDB";
 import Article from "@/app/models/article.schema";
-import Comments from "@/app/components/Comments";
+import Comments from "@/app/components/comments";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata({ params }) {
