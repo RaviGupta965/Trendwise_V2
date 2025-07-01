@@ -1,11 +1,16 @@
 import mongoose from "mongoose";
 
-const CommentSchema = new mongoose.Schema({
-  articleSlug: String,
-  userEmail: String,
-  userName: String,
-  content: String,
-  createdAt: { type: Date, default: Date.now },
-});
+const commentSchema = new mongoose.Schema(
+  {
+    articleSlug: { type: String, required: true },
+    user: {
+      name: String,
+      email: String,
+      image: String,
+    },
+    content: { type: String, required: true },
+  },
+  { timestamps: true }
+);
 
-export default mongoose.models.Comment || mongoose.model("Comment", CommentSchema);
+export default mongoose.models.Comment || mongoose.model("Comment", commentSchema);
