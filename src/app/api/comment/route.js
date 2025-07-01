@@ -1,5 +1,5 @@
-import { connectToDatabase } from "@/lib/mongodb";
-import Comment from "@/models/Comment";
+import { connectToDatabase } from "@/app/lib/mongoDB";
+import Comment from "@/app/models/comment.schema";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 

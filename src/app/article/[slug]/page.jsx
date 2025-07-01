@@ -1,5 +1,5 @@
-import { connectToDatabase } from "@/lib/mongodb";
-import Article from "@/models/Article";
+import { connectToDatabase } from "@/app/lib/mongoDB";
+import Article from "@/app/models/article.schema";
 import { notFound } from "next/navigation";
 import Comments from "@/app/components/comments";
 
