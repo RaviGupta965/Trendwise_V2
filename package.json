@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm install",
+    "build": "next build && npm install",
     "start": "next start",
+    "render-build": "npm install && next build",
     "lint": "next lint"
   },
   "dependencies": {
