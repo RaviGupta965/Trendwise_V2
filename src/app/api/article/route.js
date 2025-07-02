@@ -11,16 +11,8 @@ export async function POST(req) {
 
   // Step 1: Fetch Trending Topics using Puppeteer
   const browser = await puppeteer.launch({
-    headless: "true",
-    executablePath: process.env.CHROME_PATH || (await puppeteer.executablePath()),
-    args: [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--disable-dev-shm-usage",
-    "--disable-gpu",
-    "--no-zygote",
-    "--single-process",
-  ],
+    headless: "new",
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
   const page = await browser.newPage();
   await page.goto("https://trends24.in/india/", {
@@ -32,20 +24,19 @@ export async function POST(req) {
     document.querySelectorAll(".trend-link").forEach((el) => {
       titles.push(el.textContent.trim());
     });
-    return titles.slice(0, 20); // limit to 10 topics
+    return titles.slice(0, 5); // limit to 10 topics
   });
   await browser.close();
 
   // Step 2: Generate and save article for each topic
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
   const generated = [];
 
   for (const topic of topics) {
     const exists = await Article.findOne({ title: topic });
     if (exists) continue;
 
-    const prompt = `
-Write a detailed SEO-friendly blog article on: "${topic}".
+    const prompt = `Write a detailed SEO-friendly blog article on: "${topic}".
 Structure it with:
 - A title
 - A slug (kebab-case)
@@ -64,13 +55,12 @@ Return JSON like:
   },
   "content": "",
   "media": [""]
-}
-    `;
+};`;
 
     try {
       const result = await model.generateContent(prompt);
       const text = result.response.text().trim();
-      const jsonText = text.replace(/^```json|^```|```$/g, "");
+      const jsonText = text.replace(/```json|```/g, "").trim();
       const articleData = JSON.parse(jsonText);
       // Fallback in case Gemini misses the slug
       if (!articleData.slug) {
@@ -79,6 +69,7 @@ Return JSON like:
 
       const newArticle = await Article.create(articleData);
       generated.push(newArticle.slug);
+      await delay(2000);
     } catch (err) {
       console.error(`Failed on topic: ${topic}`, err.message);
       continue;
