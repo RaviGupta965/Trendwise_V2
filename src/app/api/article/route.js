@@ -3,8 +3,6 @@ import Article from "@/app/models/article.schema";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import puppeteer from "puppeteer";
 import slugify from "slugify";
-import chromium from "chrome-aws-lambda";
-import puppeteer from "puppeteer-core";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -14,45 +12,54 @@ function delay(ms) {
 }
 
 export async function POST(req) {
-  console.log("Connecting DB");
   await connectToDatabase();
 
-  let browser;
-  try {
-    console.log("puppeteer launch");
-    // Step 1: Launch Puppeteer
-    browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath,
-      headless: chromium.headless,
+  // Step 1: Fetch Trending Topics using Puppeteer
+  const browser = await puppeteer.launch({
+    executablePath:
+      process.env.NODE_ENV === "production"
+        ? "/usr/bin/google-chrome" // For Render/Linux
+        : "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", // For Windows
+    executablePath:
+      process.env.NODE_ENV === "production"
+        ? "/usr/bin/google-chrome"
+        : "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      ...(process.env.NODE_ENV === "production"
+        ? ["--disable-dev-shm-usage"]
+        : []),
+    ],
+    headless: "new",
+  });
+  const page = await browser.newPage();
+  await page.goto("https://trends24.in/india/", {
+    waitUntil: "networkidle2",
+  });
+
+  const topics = await page.evaluate(() => {
+    const titles = [];
+    document.querySelectorAll(".trend-link").forEach((el) => {
+      titles.push(el.textContent.trim());
     });
+    return titles; // limit to 10 topics
+  });
+  await browser.close();
 
-    const page = await browser.newPage();
-    await page.goto("https://trends24.in/india/", {
-      waitUntil: "networkidle2",
-    });
-
-    const topics = await page.evaluate(() => {
-      const titles = [];
-      document.querySelectorAll(".trend-card__list li a").forEach((el) => {
-        titles.push(el.textContent.trim());
-      });
-      return titles;
-    });
-    console.log(topic);
-    // Step 2: Generate articles using Gemini
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const generated = [];
-    let cnt = 0;
-
-    for (const topic of topics) {
-      const exists = await Article.findOne({ title: topic });
-      if (exists) continue;
-      if (cnt === 1) break;
-
-      const prompt = `Write a detailed SEO-friendly blog article on: "${topic}".
+  // Step 2: Generate and save article for each topic
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const generated = [];
+  let cnt = 0;
+  for (const topic of topics) {
+    const exists = await Article.findOne({ title: topic });
+    if (exists) continue;
+    if (cnt === 5) {
+      break;
+    }
+    const prompt = `Write a detailed SEO-friendly blog article on: "${topic}".
 Structure it with:
-- A title should be same as topic name which I am providing
+- A title should be same as topic name which i am providing
 - A slug (kebab-case)
 - Meta title and description
 - H1-H3 headings
@@ -70,36 +77,29 @@ Return JSON like:
   },
   "content": "",
   "media": [""]
-}`;
+};`;
 
-      try {
-        const result = await model.generateContent(prompt);
-        const text = result.response.text().trim();
-        const jsonText = text.replace(/```json|```/g, "").trim();
-        const articleData = JSON.parse(jsonText);
-
-        if (!articleData.slug) {
-          articleData.slug = slugify(topic, { lower: true });
-        }
-
-        const newArticle = await Article.create(articleData);
-        generated.push(newArticle.slug);
-        cnt++;
-        await delay(2000);
-      } catch (err) {
-        console.error(`Failed on topic: ${topic}`, err.message);
-        continue;
+    try {
+      const result = await model.generateContent(prompt);
+      const text = result.response.text().trim();
+      const jsonText = text.replace(/```json|```/g, "").trim();
+      const articleData = JSON.parse(jsonText);
+      // Fallback in case Gemini misses the slug
+      if (!articleData.slug) {
+        articleData.slug = slugify(topic, { lower: true });
       }
-    }
 
-    console.log("Feed refreshed. Reload to see updates.");
-    return Response.json({ success: true, generated });
-  } catch (err) {
-    console.error("Puppeteer or scraping failed:", err.message);
-    return Response.json({ success: false, error: err.message });
-  } finally {
-    if (browser) await browser.close();
+      const newArticle = await Article.create(articleData);
+      cnt++;
+      generated.push(newArticle.slug);
+      await delay(2000);
+    } catch (err) {
+      console.error(`Failed on topic: ${topic}`, err.message);
+      continue;
+    }
   }
+  console.log("your feed has been refreshed reload");
+  return Response.json({ success: true, generated });
 }
 
 // export async function POST(req) {
