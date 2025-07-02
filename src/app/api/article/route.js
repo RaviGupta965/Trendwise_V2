@@ -3,6 +3,8 @@ import Article from "@/app/models/article.schema";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import puppeteer from "puppeteer";
 import slugify from "slugify";
+import chromium from "chrome-aws-lambda";
+import puppeteer from "puppeteer-core";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -12,14 +14,17 @@ function delay(ms) {
 }
 
 export async function POST(req) {
+  console.log("Connecting DB");
   await connectToDatabase();
 
   let browser;
   try {
+    console.log("puppeteer launch");
     // Step 1: Launch Puppeteer
     browser = await puppeteer.launch({
-      headless: "new",
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: chromium.args,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage();
@@ -34,7 +39,7 @@ export async function POST(req) {
       });
       return titles;
     });
-
+    console.log(topic);
     // Step 2: Generate articles using Gemini
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const generated = [];
@@ -89,7 +94,6 @@ Return JSON like:
 
     console.log("Feed refreshed. Reload to see updates.");
     return Response.json({ success: true, generated });
-
   } catch (err) {
     console.error("Puppeteer or scraping failed:", err.message);
     return Response.json({ success: false, error: err.message });
@@ -97,58 +101,6 @@ Return JSON like:
     if (browser) await browser.close();
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // export async function POST(req) {
 //   await connectToDatabase();
@@ -203,7 +155,7 @@ Return JSON like:
 //   "content": "",
 //   "media": [""]
 // };`;
-    
+
 //     try {
 //       const result = await model.generateContent(prompt);
 //       const text = result.response.text().trim();
