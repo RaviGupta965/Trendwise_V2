@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "npm install && next build",
     "start": "next start",
-    "render-build": "npm install && next build",
+    "render-build": "npm install --include=dev && next build",
     "lint": "next lint"
   },
   "dependencies": {
