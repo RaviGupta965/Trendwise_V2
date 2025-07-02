@@ -16,20 +16,13 @@ export async function POST(req) {
 
   // Step 1: Fetch Trending Topics using Puppeteer
   const browser = await puppeteer.launch({
-    executablePath:
-      process.env.NODE_ENV === "production"
-        ? "/usr/bin/google-chrome" // For Render/Linux
-        : "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", // For Windows
-    executablePath:
-      process.env.NODE_ENV === "production"
-        ? "/usr/bin/google-chrome"
-        : "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+     executablePath:'/usr/bin/chromium-browser',
     args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      ...(process.env.NODE_ENV === "production"
-        ? ["--disable-dev-shm-usage"]
-        : []),
+      '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--single-process', // Reduces memory usage
+    '--no-zygote',     // Disables unused features
+    '--disable-gpu' 
     ],
     headless: "new",
   });
