@@ -34,12 +34,21 @@ export default async function ArticlePage({ params }) {
         <h1 className="text-4xl font-bold leading-tight tracking-tight text-[#0ef] mb-8">
           {article.title}
         </h1>
-
         <article
           className="prose prose-invert prose-lg max-w-none"
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
-
+        {Array.isArray(article.media) && article.media.length > 0 && (
+          <div className="grid gap-6 mb-8 sm:grid-cols-1 md:grid-cols-2">
+            {article.media.map((linkHtml, index) => (
+              <div
+                key={index}
+                dangerouslySetInnerHTML={{ __html: linkHtml }}
+                className="text-[#0ef] underline cursor-pointer"
+              />
+            ))}
+          </div>
+        )}
         <div className="mt-16 border-t border-gray-700 pt-10">
           <h2 className="text-2xl font-semibold text-[#0ef] mb-4">
             💬 Comments

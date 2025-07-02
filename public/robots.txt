@@ -1,6 +1,6 @@
 User-agent: *
+Disallow: /api/
+Disallow: /admin/
 Allow: /
 
-Disallow: /admin
-
-Sitemap: https://trendwise.vercel.app/sitemap.xml
+Sitemap: https://www.trendwise.com/sitemap.xml

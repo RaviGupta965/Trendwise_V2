@@ -43,15 +43,15 @@ export default function Comments({ slug }) {
           <button className="bg-blue-500 text-white px-4 rounded">Post</button>
         </form>
       ) : (
-        <p className="text-gray-600">Please log in to comment.</p>
+        <p className="text-white">Please log in to comment.</p>
       )}
 
       <ul className="space-y-2">
         {comments.map((c, i) => (
           <li key={i} className="border p-3 rounded">
-            <p className="text-sm text-gray-700 mb-1">{c.content}</p>
+            <p className="text-sm text-white mb-1">{c.content}</p>
             <span className="text-xs text-gray-500">
-              {c.userName} • {new Date(c.createdAt).toLocaleString()}
+              Created at - {new Date(c.createdAt).toLocaleString()}
             </span>
           </li>
         ))}

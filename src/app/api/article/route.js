@@ -6,6 +6,11 @@ import slugify from "slugify";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// delay to avoid api bottleneck
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function POST(req) {
   await connectToDatabase();
 
@@ -24,26 +29,29 @@ export async function POST(req) {
     document.querySelectorAll(".trend-link").forEach((el) => {
       titles.push(el.textContent.trim());
     });
-    return titles.slice(0, 5); // limit to 10 topics
+    return titles; // limit to 10 topics
   });
   await browser.close();
 
   // Step 2: Generate and save article for each topic
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
   const generated = [];
-
+  let cnt = 0;
   for (const topic of topics) {
     const exists = await Article.findOne({ title: topic });
     if (exists) continue;
-
+    if (cnt === 5) {
+      break;
+    }
     const prompt = `Write a detailed SEO-friendly blog article on: "${topic}".
 Structure it with:
-- A title
+- A title should be same as topic name which i am providing
 - A slug (kebab-case)
 - Meta title and description
 - H1-H3 headings
 - Suggested media links
 - Rich content
+- media should contain array of <a> tag with related websites link.
 
 Return JSON like:
 {
@@ -56,7 +64,7 @@ Return JSON like:
   "content": "",
   "media": [""]
 };`;
-
+    
     try {
       const result = await model.generateContent(prompt);
       const text = result.response.text().trim();
@@ -68,6 +76,7 @@ Return JSON like:
       }
 
       const newArticle = await Article.create(articleData);
+      cnt++;
       generated.push(newArticle.slug);
       await delay(2000);
     } catch (err) {
@@ -75,6 +84,6 @@ Return JSON like:
       continue;
     }
   }
-
+  console.log("your feed has been refreshed reload");
   return Response.json({ success: true, generated });
 }

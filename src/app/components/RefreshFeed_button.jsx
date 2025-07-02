@@ -24,7 +24,7 @@ export default function RefreshFeedButton() {
       <button
           onClick={handleRefresh}
           disabled={loading || done}
-          className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+          className="px-4 py-2 my-5 rounded bg-blue-600 text-white hover:bg-blue-700"
         >
           {loading ? "Refreshing..." : done ? "Done ✔" : "Refresh Feed"}
         </button>
